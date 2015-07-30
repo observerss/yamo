@@ -3,6 +3,10 @@ try:
 except ImportError:
     from distutils.core import setup
 
+import pathlib
+
+root = pathlib.Path(__file__).parent.resolve()
+
 setup(
     name='yamo',
     version='0.2.5',
@@ -12,7 +16,7 @@ setup(
     author_email='jingchaohu@gmail.com',
     packages=['yamo'],
     package_data={'': ['LICENSE']},
-    license=open('LICENSE').read(),
+    license=(root / 'LICENSE').open().read(),
     install_requires=[
         'pymongo>=3',
     ],

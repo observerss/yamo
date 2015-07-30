@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
 import logging
 
 from functools import partialmethod
 
+from pymongo.operations import UpdateOne
+
 from .cache import CachedModel
-from .errors import ConfigError, IncompleteDocumentData, ArgumentError
+from .errors import ConfigError, ArgumentError
 from .metatype import DocumentType, EmbeddedDocumentType
 
 log = logging.getLogger('yamo')
@@ -25,7 +26,9 @@ class MongoOperationMixin(object):
 
     """ Mongodb raw operations """
     @classmethod
-    def run_command(cls, cmd, *args, **kwargs):
+    def run_command(cls, *args, **kwargs):
+        cmd = kwargs['cmd']
+        del kwargs['cmd']
         return getattr(cls._coll, cmd)(*args, **kwargs)
 
     for cmd in [
@@ -88,7 +91,7 @@ class MetaMixin(object):
                             'bucketSize', 'min', 'max', 'expireAfterSeconds'])
         for idx in cls.Meta._indexes or []:
             if set(idx.kwargs.keys()) - allowed_keys:
-                raise ArgumentError(ensure_indexes, idx.kwargs)
+                raise ArgumentError(MetaMixin.ensure_indexes, idx.kwargs)
 
             cls._coll.create_index(idx.keys, **idx.kwargs)
 
@@ -136,14 +139,16 @@ class MapperMixin(object):
         self._ensure_id()
         self._coll.insert_one(self._data)
 
-    def query(self, *args, **kwargs):
+    @classmethod
+    def query(cls, *args, **kwargs):
         """ Same as collection.find, but return Document then dict """
-        for doc in self._coll.find(*args, **kwargs):
+        for doc in cls._coll.find(*args, **kwargs):
             yield cls.from_storage(doc)
 
-    def query_one(self, *args, **kwargs):
+    @classmethod
+    def query_one(cls, *args, **kwargs):
         """ Same as collection.find_one, but return Document then dict """
-        doc = self._coll.find_one(*args, **kwargs)
+        doc = cls._coll.find_one(*args, **kwargs)
         if doc:
             return cls.from_storage(doc)
 

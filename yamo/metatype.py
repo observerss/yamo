@@ -3,7 +3,7 @@
 import logging
 from collections import OrderedDict
 
-from .fields import BaseField, ObjectIdField
+from .fields import BaseField
 from .errors import ArgumentError
 from .connection import Connection
 
