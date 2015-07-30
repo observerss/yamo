@@ -152,6 +152,12 @@ class MapperMixin(object):
         if doc:
             return cls.from_storage(doc)
 
+
+    def update(self, update):
+        """ Update self """
+        self._coll.update_one({'_id': self._data['_id']},
+                              update)
+
     def upsert(self):
         """ Insert or Update Document
 
