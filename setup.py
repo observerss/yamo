@@ -3,9 +3,11 @@ try:
 except ImportError:
     from distutils.core import setup
 
+from yamo import __version__
+
 setup(
     name='yamo',
-    version='0.2.8',
+    version=__version__,
     description='Yet Another MongoDB ORM',
     url='https://github.com/observerss/yamo',
     author='Jingchao Hu(observerss)',

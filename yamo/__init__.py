@@ -10,3 +10,5 @@ __all__ = ['Connection', 'Document', 'EmbeddedDocument',
            'BinaryField', 'StringField', 'EmailField', 'DateTimeField',
            'DictField', 'ListField', 'EmbeddedField', 'SequenceField',
            'ShardKey', 'IDFormatter', 'Index']
+
+__version__ = '0.2.9'
