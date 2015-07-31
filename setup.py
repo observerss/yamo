@@ -3,20 +3,16 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import pathlib
-
-root = pathlib.Path(__file__).parent.resolve()
-
 setup(
     name='yamo',
-    version='0.2.5',
+    version='0.2.8',
     description='Yet Another MongoDB ORM',
     url='https://github.com/observerss/yamo',
     author='Jingchao Hu(observerss)',
     author_email='jingchaohu@gmail.com',
     packages=['yamo'],
     package_data={'': ['LICENSE']},
-    license=(root / 'LICENSE').open().read(),
+    license=open('LICENSE').read(),
     install_requires=[
         'pymongo>=3',
     ],

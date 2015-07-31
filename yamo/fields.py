@@ -79,7 +79,7 @@ class BooleanField(BaseField):
 
 
 class FloatField(BaseField):
-    types = [float]
+    types = [float, int]
 
 
 class BinaryField(BaseField):
@@ -142,7 +142,7 @@ class DateTimeField(BaseField):
         self.modified = modified
         self.created = created
         if self.created:
-            def _default(x):
+            def _default():
                 return datetime.utcnow()
             default = _default
         else:

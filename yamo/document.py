@@ -132,13 +132,6 @@ class MapperMixin(object):
                 self._data = doc
                 self.validate()
 
-    def save(self):
-        """ Save Document """
-        self._pre_save()
-        self.validate()
-        self._ensure_id()
-        self._coll.insert_one(self._data)
-
     @classmethod
     def query(cls, *args, **kwargs):
         """ Same as collection.find, but return Document then dict """
@@ -173,6 +166,8 @@ class MapperMixin(object):
         r = self._coll.find_one_and_update(filter_, update,
                                            upsert=True, new=True)
         self._data['_id'] = r['_id']
+
+    save = upsert
 
     @classmethod
     def bulk_upsert(cls, docs):
@@ -268,7 +263,6 @@ class Document(ValidationMixin, MetaMixin, MapperMixin, MongoOperationMixin,
     def from_storage(cls, data):
         instance = cls()
         instance._data = data
-        instance.validate()
         return instance
 
     @classproperty

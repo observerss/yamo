@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import time
+import types
 import pickle
 import functools
 
@@ -55,7 +56,8 @@ class CachedModel(object):
 
                 if cache_miss or timedout():
                     value = attr(*args, **kwargs)
-                    if isinstance(value, Cursor):
+                    if isinstance(value, Cursor) or \
+                            isinstance(value, types.GeneratorType):
                         # this will consume A LOT of memory, use with care
                         value = list(value)
                     if value is not None or self.cache_none:
