@@ -53,6 +53,9 @@ class BaseField(object):
         return value
 
 
+AnyField = BaseField
+
+
 class ObjectIdField(BaseField):
     types = [ObjectId]
 
