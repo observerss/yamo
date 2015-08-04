@@ -4,7 +4,7 @@ import logging
 
 from functools import partialmethod
 
-from pymongo.operations import UpdateOne
+from pymongo.operations import UpdateOne, InsertOne
 
 from .cache import CachedModel
 from .errors import ConfigError, ArgumentError
@@ -161,13 +161,28 @@ class MapperMixin(object):
         self.validate()
 
         filter_ = self._upsert_filter()
-        update = self._upsert_update(filter_)
+        if filter_:
+            update = self._upsert_update(filter_)
 
-        r = self._coll.find_one_and_update(filter_, update,
-                                           upsert=True, new=True)
-        self._data['_id'] = r['_id']
+            r = self._coll.find_one_and_update(filter_, update,
+                                               upsert=True, new=True)
+            self._data['_id'] = r['_id']
+        else:
+            r = self._coll.insert_one(self._data)
+            self._data['_id'] = r.inserted_id
 
-    save = upsert
+
+    def save(self):
+        self._pre_save()
+        self.validate()
+
+        if '_id' in self._data:
+            doc = self._data.copy()
+            del doc['_id']
+            self._coll.update_one({'_id': self._data['_id']},
+                                  {'$set': doc})
+        else:
+            self._coll.insert_one(self._data)
 
     @classmethod
     def bulk_upsert(cls, docs):
@@ -177,8 +192,11 @@ class MapperMixin(object):
                 raise ArgumentError(cls, docs)
             doc.validate()
             filter_ = doc._upsert_filter()
-            update = doc._upsert_update(filter_)
-            requests.append(UpdateOne(filter_, update, upsert=True))
+            if filter_:
+                update = doc._upsert_update(filter_)
+                requests.append(UpdateOne(filter_, update, upsert=True))
+            else:
+                requests.append(InsertOne(doc._data))
         cls._coll.bulk_write(requests, ordered=False)
 
     def remove(self):
