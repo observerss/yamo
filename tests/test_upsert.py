@@ -21,6 +21,7 @@ def test_upsert():
     P({'b': '5'}).upsert(null=True)
     p = P.query_one({'b': '5'})
     assert p.c is None
+    P.drop()
 
 
 if __name__ == '__main__':

@@ -140,7 +140,7 @@ class EmailField(StringField):
 class DateTimeField(BaseField):
     types = [datetime]
 
-    def __init__(self, modified=False, created=True, **kwargs):
+    def __init__(self, modified=False, created=False, **kwargs):
 
         self.modified = modified
         self.created = created
