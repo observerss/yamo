@@ -31,8 +31,6 @@ def test_crud():
     assert t.count == 0
     assert t._id
 
-    assert_raises(DuplicateKeyError, t.save)
-
     t2 = Test({'text': 'aaa', 'status': 2, 'count': 5})
     t2.upsert()
     assert t2.count == 5

@@ -2,7 +2,8 @@ from .connection import Connection
 from .document import Document, EmbeddedDocument
 from .fields import (ObjectIdField, IntField, BooleanField, FloatField,
                      BinaryField, StringField, EmailField, DateTimeField,
-                     DictField, ListField, EmbeddedField, SequenceField)
+                     DictField, ListField, EmbeddedField, SequenceField,
+                     AnyField)
 from .metatype import ShardKey, IDFormatter, Index
 
 __all__ = ['Connection', 'Document', 'EmbeddedDocument', 'AnyField',
@@ -11,4 +12,4 @@ __all__ = ['Connection', 'Document', 'EmbeddedDocument', 'AnyField',
            'DictField', 'ListField', 'EmbeddedField', 'SequenceField',
            'ShardKey', 'IDFormatter', 'Index']
 
-__version__ = '0.2.12'
+__version__ = '0.2.13'

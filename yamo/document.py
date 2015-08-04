@@ -151,9 +151,10 @@ class MapperMixin(object):
         self._coll.update_one({'_id': self._data['_id']},
                               update)
 
-    def upsert(self):
+    def upsert(self, null=False):
         """ Insert or Update Document
 
+        :param null: whether update null values
         Wisely select unique field values as filter,
         Update with upsert=True
         """
@@ -162,15 +163,15 @@ class MapperMixin(object):
 
         filter_ = self._upsert_filter()
         if filter_:
-            update = self._upsert_update(filter_)
+            update = self._upsert_update(filter_, null)
 
-            r = self._coll.find_one_and_update(filter_, update,
-                                               upsert=True, new=True)
-            self._data['_id'] = r['_id']
+            if update['$set']:
+                r = self._coll.find_one_and_update(filter_, update,
+                                                   upsert=True, new=True)
+                self._data['_id'] = r['_id']
         else:
             r = self._coll.insert_one(self._data)
             self._data['_id'] = r.inserted_id
-
 
     def save(self):
         self._pre_save()
@@ -185,7 +186,7 @@ class MapperMixin(object):
             self._coll.insert_one(self._data)
 
     @classmethod
-    def bulk_upsert(cls, docs):
+    def bulk_upsert(cls, docs, null=False):
         requests = []
         for doc in docs:
             if not isinstance(doc, cls):
@@ -193,8 +194,9 @@ class MapperMixin(object):
             doc.validate()
             filter_ = doc._upsert_filter()
             if filter_:
-                update = doc._upsert_update(filter_)
-                requests.append(UpdateOne(filter_, update, upsert=True))
+                update = doc._upsert_update(filter_, null)
+                if update['$set']:
+                    requests.append(UpdateOne(filter_, update, upsert=True))
             else:
                 requests.append(InsertOne(doc._data))
         cls._coll.bulk_write(requests, ordered=False)
@@ -224,6 +226,10 @@ class MapperMixin(object):
             value = field.pre_save_val(self._data.get(name))
             if value:
                 setattr(self, name, value)
+            if not field.required and name in self._data \
+                    and self._data[name] is None:
+                del self._data[name]
+
 
     def _upsert_filter(self):
         filter_ = {}
@@ -235,10 +241,10 @@ class MapperMixin(object):
                 filter_[name] = value
         return filter_
 
-    def _upsert_update(self, filter_):
+    def _upsert_update(self, filter_, null=False):
         to_update = {}
         for key, value in self._data.items():
-            if key not in filter_:
+            if key not in filter_ and (null or value is not None):
                 to_update[key] = value
         update = {'$set': to_update}
         return update
