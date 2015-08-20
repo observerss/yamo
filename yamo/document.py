@@ -175,13 +175,15 @@ class MapperMixin(object):
 
     def save(self):
         self._pre_save()
+        self._ensure_id()
         self.validate()
 
         if '_id' in self._data:
             doc = self._data.copy()
             del doc['_id']
             self._coll.update_one({'_id': self._data['_id']},
-                                  {'$set': doc})
+                                  {'$set': doc},
+                                  upsert=True)
         else:
             self._coll.insert_one(self._data)
 
