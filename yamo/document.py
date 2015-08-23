@@ -56,12 +56,41 @@ class MongoOperationMixin(object):
         locals()[cmd] = partialmethod(run_command, cmd=cmd)
 
 
+class InitMixin(object):
+    def __init__(self, data=None):
+        self._data = {}
+        if data:
+            for name, field in self._fields.items():
+                if name in data:
+                    value = data[name]
+                else:
+                    value = field.default
+                    if callable(value):
+                        value = value()
+
+                value = field.to_storage(value)
+                self._data[name] = value
+
+
 class ValidationMixin(object):
 
     def validate(self):
         for name, field in self._fields.items():
             value = field.to_python(self._data.get(name))
             field.validate(value)
+
+    def to_dict(self):
+        d = {}
+        for name, field in self._fields.items():
+            value = field.to_python(self._data.get(name))
+            if isinstance(value, list):
+                ovalue, value = value, []
+                for v in ovalue:
+                    if isinstance(v, EmbeddedDocument):
+                        v = v.to_dict()
+                    value.append(v)
+            d[name] = value
+        return d
 
 
 class MetaMixin(object):
@@ -263,27 +292,13 @@ class MapperMixin(object):
         return _id
 
 
-class EmbeddedDocument(ValidationMixin,
+class EmbeddedDocument(InitMixin, ValidationMixin,
                        metaclass=EmbeddedDocumentType):
     pass
 
 
-class Document(ValidationMixin, MetaMixin, MapperMixin, MongoOperationMixin,
+class Document(InitMixin, ValidationMixin, MetaMixin, MapperMixin, MongoOperationMixin,
                metaclass=DocumentType):
-
-    def __init__(self, data=None):
-        self._data = {}
-        if data:
-            for name, field in self._fields.items():
-                if name in data:
-                    value = data[name]
-                else:
-                    value = field.default
-                    if callable(value):
-                        value = value()
-
-                value = field.to_storage(value)
-                self._data[name] = value
 
     @classmethod
     def from_storage(cls, data):

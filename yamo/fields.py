@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
+from enum import Enum
 from datetime import datetime
 
 from bson import ObjectId
@@ -74,6 +75,21 @@ class IntField(BaseField):
         if value:
             if (self._min and self._min > value) or \
                     (self._max and self._max < value):
+                self._raise_validation_error(value)
+
+
+class EnumField(BaseField):
+    types = [Enum]
+
+    def __init__(self, cls, **kwargs):
+        self._cls = cls
+        super(EnumField, self).__init__(**kwargs)
+
+    def validate(self, value):
+        super(EnumField, self).validate(value)
+
+        if value:
+            if not isinstance(value, self._cls):
                 self._raise_validation_error(value)
 
 
@@ -224,7 +240,7 @@ class EmbeddedField(BaseField):
 
     def __init__(self, embedded=None, **kwargs):
         from yamo import EmbeddedDocument
-        if not isinstance(embedded, EmbeddedDocument):
+        if not issubclass(embedded, EmbeddedDocument):
             raise ArgumentError(EmbeddedField, embedded)
 
         super(EmbeddedField, self).__init__(**kwargs)
@@ -239,7 +255,10 @@ class EmbeddedField(BaseField):
             else:
                 value.validate()
 
-    def to_storage(value):
+    def to_storage(self, value):
+        if isinstance(value, dict):
+            value = self.embedded(value)
+
         return getattr(value, '_data', None)
 
     def to_python(self, value):
