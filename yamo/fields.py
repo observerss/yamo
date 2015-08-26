@@ -207,6 +207,11 @@ class ListField(BaseField):
 
     def __init__(self, field=None, default=None, **kwargs):
         default = default or []
+        try:
+            if issubclass(field, BaseField):
+                field = field()
+        except:
+            pass
         self.field = field
         super(ListField, self).__init__(default=default, **kwargs)
 
