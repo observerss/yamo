@@ -92,6 +92,15 @@ class EnumField(BaseField):
             if not isinstance(value, self._cls):
                 self._raise_validation_error(value)
 
+    def to_python(self, value):
+        return self._cls(value)
+
+    def to_storage(self, value):
+        try:
+            return value.value
+        except:
+            return value
+
 
 class BooleanField(BaseField):
     types = [bool]

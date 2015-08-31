@@ -59,6 +59,7 @@ class MongoOperationMixin(object):
 class InitMixin(object):
     def __init__(self, data=None):
         self._data = {}
+        self._defaults = {}
         if data:
             for name, field in self._fields.items():
                 if name in data:
@@ -67,6 +68,8 @@ class InitMixin(object):
                     value = field.default
                     if callable(value):
                         value = value()
+                    if value is not None:
+                        self._defaults[name] = value
 
                 value = field.to_storage(value)
                 self._data[name] = value
@@ -230,7 +233,8 @@ class MapperMixin(object):
                     requests.append(UpdateOne(filter_, update, upsert=True))
             else:
                 requests.append(InsertOne(doc._data))
-        cls._coll.bulk_write(requests, ordered=False)
+        r = cls._coll.bulk_write(requests, ordered=False)
+        return r.upserted_count
 
     def remove(self):
         _id = self._ensure_id()
@@ -274,10 +278,17 @@ class MapperMixin(object):
 
     def _upsert_update(self, filter_, null=False):
         to_update = {}
+        to_insert = {}
         for key, value in self._data.items():
             if key not in filter_ and (null or value is not None):
-                to_update[key] = value
+                if self._defaults.get(key) == value:
+                    # default value should only been applied if it is an insert
+                    to_insert[key] = value
+                else:
+                    to_update[key] = value
         update = {'$set': to_update}
+        if to_insert:
+            update['$setOnInsert'] = to_insert
         return update
 
     def _ensure_id(self):
