@@ -201,6 +201,14 @@ class DictField(BaseField):
         default = default or {}
         super(DictField, self).__init__(default=default, **kwargs)
 
+    def to_storage(self, value):
+        escaped = {}
+        for k, v in value.items():
+            if isinstance(k, str):
+                k = k.replace('.', '__dot__')
+            escaped[k] = v
+        return escaped
+
     def to_python(self, value):
         if value is None:
             return {}
@@ -208,7 +216,12 @@ class DictField(BaseField):
         if not isinstance(value, dict):
             raise DeserializationError(self, value)
 
-        return value
+        unescaped = {}
+        for k, v in value.items():
+            if isinstance(k, str):
+                k = k.replace('__dot__', '.')
+            unescaped[k] = v
+        return unescaped
 
 
 class ListField(BaseField):
