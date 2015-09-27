@@ -30,7 +30,11 @@ class Connection(object):
             self._register(doc)
 
     def _register(self, doc):
-        if doc not in self.docdb:
+        try:
+            doc._db
+        except:
             self.docdb[doc] = self.db
             doc._db = self.db
             doc.prepare()
+        else:
+            self.docdb[doc] = doc._db
