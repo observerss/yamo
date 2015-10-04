@@ -47,6 +47,11 @@ class EmbeddedDocumentType(type):
 
         new_cls = super(EmbeddedDocumentType, cls).__new__(
             cls, name, bases, dct)
+
+        # set "_doc" to all fields
+        for val in dct['_fields'].values():
+            if isinstance(val, BaseField):
+                setattr(val, '_doc', new_cls)
         return new_cls
 
 

@@ -1,5 +1,7 @@
-import pymongo
-
+try:
+    import pymongo
+except:
+    pass
 
 class Connection(object):
 

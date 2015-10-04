@@ -301,6 +301,7 @@ class SequenceField(IntField):
         if value:
             return value
 
+        count = 100
         while True:
             try:
                 r = self._doc._db.counters.find_and_modify(
@@ -308,6 +309,10 @@ class SequenceField(IntField):
                     update={'$inc': {'seq': 1}},
                     new=True, upsert=True)
             except:
+                count -= 1
+                # 最多尝试100次, 还不行应该是哪里有问题了
+                if count < 0:
+                    raise
                 continue
             else:
                 break
