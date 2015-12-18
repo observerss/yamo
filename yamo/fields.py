@@ -144,7 +144,7 @@ class StringField(BaseField):
 
     def to_storage(self, value):
         if self.strip and value:
-            value = value.strip()
+            value = str(value).strip()
         return value
 
 
