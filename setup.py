@@ -1,13 +1,9 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
-from yamo import __version__
 
 setup(
     name='yamo',
-    version=__version__,
+    version='0.2.25',
     description='Yet Another MongoDB ORM',
     url='https://github.com/observerss/yamo',
     author='Jingchao Hu(observerss)',
@@ -15,9 +11,8 @@ setup(
     packages=['yamo'],
     package_data={'': ['LICENSE']},
     license=open('LICENSE').read(),
-    install_requires=[
-        'pymongo>=3',
-    ],
+    setup_requires=['pymongo>=3'],
+    install_requires=['pymongo>=3'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

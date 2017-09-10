@@ -101,7 +101,9 @@ class DocumentType(EmbeddedDocumentType):
         new_cls = super(DocumentType, cls).__new__(cls, name, bases, dct)
 
         # setting up connection hook
-        Connection.docdb[new_cls] = None
+        for base in bases:
+            if base.__name__ == 'Document':
+                Connection.docdb[new_cls] = None
         return new_cls
 
 

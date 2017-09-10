@@ -17,7 +17,7 @@ class Connection(object):
 
     def __init__(self, host=None, port=None, db=None, *args, **kwargs):
         if host and '/' in host:
-            db = host.rsplit('/', 1)[-1]
+            host, db = host.rsplit('/', 1)
         if not db:
             db = 'test'
 
