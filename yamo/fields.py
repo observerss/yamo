@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
+import weakref
 from enum import Enum
 from datetime import datetime
 
@@ -265,13 +266,14 @@ class ListField(BaseField):
 
 class EmbeddedField(BaseField):
 
-    def __init__(self, embedded=None, **kwargs):
+    def __init__(self, embedded, **kwargs):
         from yamo import EmbeddedDocument
         if not issubclass(embedded, EmbeddedDocument):
             raise ArgumentError(EmbeddedField, embedded)
 
         super(EmbeddedField, self).__init__(**kwargs)
         self.embedded = embedded
+        self.cached = weakref.WeakValueDictionary()
 
     def validate(self, value):
         super(EmbeddedField, self).validate(value)
@@ -283,14 +285,36 @@ class EmbeddedField(BaseField):
                 value.validate()
 
     def to_storage(self, value):
-        if isinstance(value, dict):
-            value = self.embedded(value)
+        if isinstance(value, self.embedded):
+            value = value._data
+        elif isinstance(value, dict):
+            pass
+        else:
+            raise NotImplementedError
+            # value = self.embedded(value)
 
-        return getattr(value, '_data', None)
+        return value
 
     def to_python(self, value):
-        if value:
-            return self.embedded(value)
+        if not value:
+            value = {}
+        if isinstance(value, dict):
+            vid = id(value)
+            if vid not in self.cached:
+                # embedded object is cached here
+                value = self.embedded(value)
+                self.cached[vid] = value
+            value = self.cached[vid]
+        return value
+
+    def pre_save_val(self, value):
+        if isinstance(value, dict):
+            dct = self.cached.get(id(value))
+            if dct:
+                # update embeded field value to parent _data
+                for key in value:
+                    value[key] = getattr(dct, key)
+            return value
 
 
 class SequenceField(IntField):

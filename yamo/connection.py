@@ -3,6 +3,7 @@ try:
 except:
     pass
 
+
 class Connection(object):
 
     """ MongoDB MongoClient Wrapper

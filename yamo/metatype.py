@@ -38,6 +38,15 @@ class EmbeddedDocumentType(type):
         for x in bases:
             dct['_fields'].update(getattr(x, '_fields', {}))
 
+        if '_id' not in dct:
+            def idgetter(self):
+                return self._data.get('_id')
+
+            def idsetter(self, val):
+                self._data['_id'] = val
+
+            dct['_id'] = property(idgetter, idsetter)
+
         for attr, val in dct.items():
             if isinstance(val, BaseField):
                 val.name = attr

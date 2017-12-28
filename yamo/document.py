@@ -9,6 +9,7 @@ from pymongo.operations import UpdateOne, InsertOne
 from .cache import CachedModel
 from .errors import ConfigError, ArgumentError
 from .metatype import DocumentType, EmbeddedDocumentType
+from .fields import EmbeddedField
 
 log = logging.getLogger('yamo')
 
@@ -58,6 +59,7 @@ class MongoOperationMixin(object):
 
 class InitMixin(object):
     def __init__(self, data=None):
+        self._refs = {}
         self._data = {}
         self._defaults = {}
         if data:
@@ -79,8 +81,9 @@ class ValidationMixin(object):
 
     def validate(self):
         for name, field in self._fields.items():
-            value = field.to_python(self._data.get(name))
-            field.validate(value)
+            if name in self._data:
+                value = field.to_python(self._data[name])
+                field.validate(value)
 
     def to_dict(self):
         d = {}
@@ -177,7 +180,6 @@ class MapperMixin(object):
         if doc:
             return cls.from_storage(doc)
 
-
     def update(self, update):
         """ Update self """
         self._coll.update_one({'_id': self._data['_id']},
@@ -221,10 +223,14 @@ class MapperMixin(object):
 
     @classmethod
     def bulk_upsert(cls, docs, null=False):
+        if len(docs) == 0:
+            return 0
         requests = []
+
         for doc in docs:
             if not isinstance(doc, cls):
                 raise ArgumentError(cls, docs)
+            doc._pre_save()
             doc.validate()
             filter_ = doc._upsert_filter()
             if filter_:
@@ -264,7 +270,6 @@ class MapperMixin(object):
             if not field.required and name in self._data \
                     and self._data[name] is None:
                 del self._data[name]
-
 
     def _upsert_filter(self):
         filter_ = {}
@@ -315,6 +320,10 @@ class Document(InitMixin, ValidationMixin, MetaMixin, MapperMixin, MongoOperatio
     def from_storage(cls, data):
         instance = cls()
         instance._data = data
+        # create reference to embedded values
+        for key, value in instance._fields.items():
+            if isinstance(value, EmbeddedField):
+                instance._refs[key] = value.to_python(data[key])
         return instance
 
     @classproperty
