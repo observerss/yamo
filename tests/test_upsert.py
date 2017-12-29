@@ -1,5 +1,6 @@
 from yamo import *
 
+
 class P(Document):
     class Meta:
         idx1 = Index('b', unique=True)
@@ -29,6 +30,7 @@ def test_upsert():
     assert p.c is '2'
     P.drop()
 
+
 def test_default_with_upsert():
     Q.drop()
     q = Q({'_id': 1, 'a': 3, 'b': '3'})
@@ -41,7 +43,6 @@ def test_default_with_upsert():
     q.refresh()
     assert q.a == 3
     assert q.b == '4'
-
 
 
 if __name__ == '__main__':

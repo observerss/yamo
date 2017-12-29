@@ -1,6 +1,7 @@
 from yamo import *
 from datetime import datetime
 
+
 class Q(Document):
     class Meta:
         idx1 = Index('u', unique=True)
@@ -10,6 +11,7 @@ class Q(Document):
 
 
 Connection().register_all()
+
 
 def test_datetime():
     Q({'u': 1, 't': 'haha', 'd': datetime(2015, 1, 1)}).upsert()

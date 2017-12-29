@@ -1,5 +1,6 @@
 from yamo import *
 
+
 class Q(Document):
     class Meta:
         idf = IDFormatter('{int1}')
@@ -9,6 +10,7 @@ class Q(Document):
 
 Connection().register_all()
 
+
 def test_idformatter():
     Q.drop()
     q = Q({'int1': 3})
@@ -16,7 +18,6 @@ def test_idformatter():
     assert q._id == '3'
     q = Q.query_one()
     assert q._id == '3'
-
 
 
 if __name__ == '__main__':

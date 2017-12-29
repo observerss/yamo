@@ -1,7 +1,20 @@
-try:
-    import pymongo
-except:
-    pass
+import time
+import functools
+import threading
+
+
+def myopen(oldopen, conn):
+    prepare_later(conn)
+    return oldopen()
+
+
+def prepare_later(conn):
+    def _prepare():
+        time.sleep(1)
+        for doc in conn.docdb:
+            doc.prepare()
+
+    threading.Thread(target=_prepare, daemon=True).start()
 
 
 class Connection(object):
@@ -17,12 +30,18 @@ class Connection(object):
     docdb = {}
 
     def __init__(self, host=None, port=None, db=None, *args, **kwargs):
+        # in case pymongo is not installed when setup yamo
+        import pymongo
         if host and '/' in host:
             host, db = host.rsplit('/', 1)
         if not db:
             db = 'test'
 
+        kwargs['connect'] = False
         self.client = pymongo.MongoClient(host, port, *args, **kwargs)
+        oldopen = self.client._topology.open
+        self.client._topology.open = functools.partial(
+            myopen, oldopen=oldopen, conn=self)
         self.db = self.client[db]
 
     def register_all(self):
@@ -38,6 +57,5 @@ class Connection(object):
         except:
             self.docdb[doc] = self.db
             doc._db = self.db
-            doc.prepare()
         else:
             self.docdb[doc] = doc._db
