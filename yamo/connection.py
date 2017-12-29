@@ -8,11 +8,13 @@ def myopen(oldopen, conn):
     return oldopen()
 
 
-def prepare_later(conn):
+def prepare_later(conn, prepared={}):
     def _prepare():
         time.sleep(1)
         for doc in conn.docdb:
-            doc.prepare()
+            if doc not in prepared:
+                doc.prepare()
+                prepared[doc] = True
 
     threading.Thread(target=_prepare, daemon=True).start()
 

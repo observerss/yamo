@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='yamo',
-    version='0.2.28',
+    version='0.2.29',
     description='Yet Another MongoDB ORM',
     url='https://github.com/observerss/yamo',
     author='Jingchao Hu(observerss)',
@@ -19,6 +19,6 @@ setup(
         'Natural Language :: English',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.6',
     ],
 )
