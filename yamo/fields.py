@@ -190,7 +190,10 @@ class DateTimeField(BaseField):
         try:
             return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
         except:
-            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+            try:
+                return datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+            except:
+                return datetime.strptime(value, "%Y-%m-%d")
 
     def to_storage(self, value):
         if value and isinstance(value, datetime):
