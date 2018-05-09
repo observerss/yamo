@@ -1,4 +1,5 @@
 import time
+import pickle
 import functools
 import threading
 
@@ -31,6 +32,9 @@ class Connection(object):
     # Document -> DB
     docdb = {}
 
+    # host, port, *args, **kwargs -> mongoclient
+    mcs = {}
+
     def __init__(self, host=None, port=None, db=None, *args, **kwargs):
         # in case pymongo is not installed when setup yamo
         import pymongo
@@ -40,7 +44,12 @@ class Connection(object):
             db = 'test'
 
         kwargs['connect'] = False
-        self.client = pymongo.MongoClient(host, port, *args, **kwargs)
+        key = pickle.dumps((host, port, db, args, kwargs))
+        if key not in self.mcs:
+            self.client = pymongo.MongoClient(host, port, *args, **kwargs)
+            self.mcs[key] = self.client
+        else:
+            self.client = self.mcs[key]
         oldopen = self.client._topology.open
         self.client._topology.open = functools.partial(
             myopen, oldopen=oldopen, conn=self)
