@@ -5,7 +5,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 
 
-executor = ThreadPoolExecutor(1）
+executor = ThreadPoolExecutor(1)
 
 
 def myopen(oldopen, conn):
