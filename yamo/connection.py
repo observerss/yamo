@@ -2,6 +2,10 @@ import time
 import pickle
 import functools
 import threading
+from concurrent.futures import ThreadPoolExecutor
+
+
+executor = ThreadPoolExecutor(1）
 
 
 def myopen(oldopen, conn):
@@ -17,7 +21,7 @@ def prepare_later(conn, prepared={}):
                 doc.prepare()
                 prepared[doc] = True
 
-    threading.Thread(target=_prepare, daemon=True).start()
+    executor.submit(_prepare)
 
 
 class Connection(object):
