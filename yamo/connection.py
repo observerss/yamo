@@ -1,27 +1,34 @@
 import time
+import queue
 import pickle
 import functools
 import threading
-from concurrent.futures import ThreadPoolExecutor
 
 
-executor = ThreadPoolExecutor(1)
+task = queue.Queue()
+prepared = {}
 
 
 def myopen(oldopen, conn):
-    prepare_later(conn)
+    task.put(conn)
     return oldopen()
 
 
-def prepare_later(conn, prepared={}):
-    def _prepare():
-        time.sleep(1)
-        for doc in conn.docdb:
-            if doc not in prepared:
-                doc.prepare()
-                prepared[doc] = True
+def bg_prepare():
+    def _prepare(prepared={}):
+        while True:
+            try:
+                conn = task.get(timeout=1)
+                for doc in conn.docdb:
+                    if doc not in prepared:
+                        doc.prepare()
+                        prepared[doc] = True
+            except queue.Empty:
+                pass
+    threading.Thread(target=_prepare, daemon=True).start()
 
-    executor.submit(_prepare)
+
+bg_prepare()
 
 
 class Connection(object):
