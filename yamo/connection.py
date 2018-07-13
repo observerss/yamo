@@ -14,7 +14,7 @@ def myopen(oldopen, conn):
     return oldopen()
 
 
-def bg_prepare():
+def bg_prepare(started=[]):
     def _prepare(prepared={}):
         while True:
             try:
@@ -25,7 +25,9 @@ def bg_prepare():
                         prepared[doc] = True
             except queue.Empty:
                 pass
-    threading.Thread(target=_prepare, daemon=True).start()
+    if not started:
+        started.append(1)
+        threading.Thread(target=_prepare, daemon=True).start()
 
 
 bg_prepare()
